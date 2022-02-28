@@ -7,23 +7,25 @@ import {
     translateArray,
     toDegrees,
     addVectors,
-    getMagnitudeDiff
+    getMag,
+    subtractVector
 } from "../../../utils/math";
 import { PlayerList } from "./playerList";
 
 interface playerInfo {
-    dF: vec2
+    dF: vec2,
+    pos: vec2
 }
 
 class Player {
-    tForce: vec2;     // acceleration
-    driveForce: vec2; // The force of where it is facing
+    tForce: vec2;     
+    driveForce: vec2; 
 
     bearing: number = 0;
     position: vec2 = { x: 0, y: 0 };  // current position from the canvas
     speed: number = 25;             // the constant speed
 
-    drivingForce: number = 2
+    drivingForce: number = 3
     alignmentForce: number = 1
     seperationForce: number = 1
     cohensionForce: number = 1
@@ -61,11 +63,13 @@ class Player {
 
         for (let i = 0; i < playerList.players.length; i++) {
             const currPlayer = playerList.players[i]
-            const distanceTo = getMagnitudeDiff(this.position, currPlayer.position)
+            const posDiff = subtractVector(currPlayer.position, this.position)
+            const distanceTo = getMag(posDiff)
 
             if (distanceTo < this.perception) {
                 pInfo.push({
-                    dF: currPlayer.driveForce
+                    dF: currPlayer.driveForce,
+                    pos: {...posDiff, y: -1 * posDiff.y}
                 })
             }
         }
@@ -88,7 +92,43 @@ class Player {
         return { x: 0, y: 0 }
     }
 
+    separation(closePlayers: playerInfo[]): vec2 {
+        if (closePlayers.length > 0) {
+            let sumVec: vec2 = {x: 0, y: 0} 
+            
+            closePlayers.map((val) => {
+                sumVec.x += val.pos.x
+                sumVec.y += val.pos.y
+            })
 
+            return {
+                x: ((-sumVec.x / closePlayers.length) / (this.perception / 4)) * this.seperationForce,
+                y: ((-sumVec.y / closePlayers.length) / (this.perception / 4)) * this.seperationForce
+            }
+
+        }
+
+        return {x: 0, y: 0}
+    }
+
+    cohesion(closePlayers: playerInfo[]): vec2 {
+        if (closePlayers.length > 0) {
+            let sumVec: vec2 = {x: 0, y: 0} 
+            
+            closePlayers.map((val) => {
+                sumVec.x += val.pos.x
+                sumVec.y += val.pos.y
+            })
+
+            return {
+                x: ((sumVec.x / closePlayers.length) / this.perception) * this.cohensionForce,
+                y: ((sumVec.y / closePlayers.length) / this.perception) * this.cohensionForce
+            }
+
+        }
+
+        return {x: 0, y: 0}
+    }
 
     // depending on its internal state update the bird
     update(playerList: PlayerList | void): void {
@@ -101,10 +141,11 @@ class Player {
                 y: this.driveForce.y * this.drivingForce
             }
             const alignForce = this.alignment(closePlayers)
-
+            const sepForce = this.separation(closePlayers)
+            const cohForce = this.cohesion(closePlayers)
 
             // add all the forces together
-            this.tForce = addVectors([driveForce, alignForce], 1)
+            this.tForce = addVectors([driveForce, alignForce, sepForce, cohForce], 1)
         }
 
         const velocity: vec2 = {
@@ -143,9 +184,9 @@ class Player {
         ctx: CanvasRenderingContext2D,
     ): void {
         let path: vec2[] = [
-            { x: 30, y: 0 },
-            { x: -30, y: -15 },
-            { x: -30, y: 15 }
+            { x: 16, y: 0 },
+            { x: -16, y: -9 },
+            { x: -16, y: 9 }
         ]
 
         path = translateArray(rotateArray(path, toDegrees(this.bearing)), this.position)

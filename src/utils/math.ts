@@ -34,8 +34,8 @@ export function getAngle(vector: vec2): number {
     return Math.atan2(vector.y, vector.x)
 }
 
-export function getMagnitudeDiff(vectorA: vec2, vectorB: vec2): number {
-    return Math.sqrt(Math.pow(vectorB.x - vectorA.x, 2) + Math.pow(vectorB.y - vectorA.y, 2))
+export function getMag(vector: vec2): number {
+    return Math.sqrt(Math.pow(vector.x, 2) + Math.pow(vector.y, 2))
 }
 
 export function translateArray(vectors: vec2[], translateVec: vec2): vec2[] {
@@ -50,6 +50,13 @@ export function rotateArray(vectors: vec2[], degrees: number): vec2[] {
     })
 }
 
+export function subtractVector(vectorA: vec2, vectorB: vec2): vec2 {
+    return {
+        x: vectorA.x - vectorB.x,
+        y: vectorA.y - vectorB.y,
+    }
+} 
+
 export function addVectors(vectors: vec2[], mag: number = -1): vec2 {
     let resultant: vec2 = { x: 0, y: 0 }
 
@@ -57,8 +64,6 @@ export function addVectors(vectors: vec2[], mag: number = -1): vec2 {
         resultant.x += val.x
         resultant.y += val.y
     })
-
-    console.log(resultant)
 
     if (mag !== -1) {
         return toRectangular(1, toDegrees(Math.atan2(resultant.y, resultant.x)))

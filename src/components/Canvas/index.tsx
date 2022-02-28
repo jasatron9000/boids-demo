@@ -9,6 +9,8 @@ const Canvas: React.FC = () => {
     const playersRef = useRef<PlayerList | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
+    const [totalPlayers, setTotalPlayers] = useState(200);
+
     function draw() {
         const players = playersRef.current
 
@@ -22,8 +24,12 @@ const Canvas: React.FC = () => {
         if (canvasRef.current) {
             playersRef.current = new PlayerList(
                 canvasRef.current,
-                25
+                totalPlayers
             )
+        }
+
+        return () => {
+            playersRef.current = null
         }
     }, [])
 

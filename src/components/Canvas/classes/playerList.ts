@@ -20,7 +20,7 @@ export class PlayerList {
         for (let i = 0; i < length; i++) {
             this.players.push(new Player(
                 canvas,
-                25
+                15
             ))
         }
     }
