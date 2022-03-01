@@ -1,15 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { PlayerList } from './classes/playerList';
 
-import { vec2 } from '../../interfaces/vector';
-
 import './index.css';
 
 const Canvas: React.FC = () => {
     const playersRef = useRef<PlayerList | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const [totalPlayers, setTotalPlayers] = useState(200);
+    const [totalPlayers, setTotalPlayers] = useState(500);
 
     function draw() {
         const players = playersRef.current

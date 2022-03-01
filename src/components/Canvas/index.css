@@ -1,7 +1,8 @@
 canvas {
-    width: 80%;
+    width: clamp(1em, 60%, 70em);
     height: auto;
 
     aspect-ratio: 16/9;
     background-color: var(--secondary);
+    border-radius: 0.5em;
 }

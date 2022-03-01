@@ -13,183 +13,242 @@ import {
 import { PlayerList } from "./playerList";
 
 interface playerInfo {
-    dF: vec2,
-    pos: vec2
+    relDisp: vec2,
+    absVel: vec2,
+    isTooClose: boolean
 }
 
 class Player {
-    tForce: vec2;     
-    driveForce: vec2; 
+    velocity: vec2;
+    newVelocity: vec2;
+    position: vec2;
 
-    bearing: number = 0;
-    position: vec2 = { x: 0, y: 0 };  // current position from the canvas
-    speed: number = 25;             // the constant speed
+    alignmentFactor: number = 0.5
+    seperationFactor: number = 0.75
+    cohesionFactor: number = 0.005
 
-    drivingForce: number = 3
-    alignmentForce: number = 1
-    seperationForce: number = 1
-    cohensionForce: number = 1
-
-    perception: number = 50
+    maxSpeed: number
+    minSpeed: number
+    turnFactor: number = 4
+    perception: number = 100
+    avoidRatio: number = 0.4
 
     canvas: HTMLCanvasElement;
-    wrapAround: boolean = true;
+    wrapAround: boolean = false;
 
-    private playerStyle: string = "#e67e22";
+    private playerStyle: string;
 
     constructor(
         canvas: HTMLCanvasElement,
-        speed: number = 25
+        maxSpeed: number = 25,
+        minSpeed: number = 10
     ) {
         this.canvas = canvas
-        this.speed = speed;
-        this.tForce = toRectangular(1, (Math.random() * 360) - 180)
-        this.driveForce = {
-            x: this.tForce.x,
-            y: this.tForce.y
+        this.maxSpeed = maxSpeed
+        this.minSpeed = minSpeed
+
+        this.velocity = toRectangular(minSpeed, (Math.random() * 360) - 180)
+        this.newVelocity = {x: 0, y: 0}
+        this.position = {
+            x: Math.random() * canvas.width, 
+            y: Math.random() * canvas.height
         }
 
-        this.position = {
-            x: (Math.random() * canvas.width),
-            y: (Math.random() * canvas.height)
-        };
-        this.bearing = getAngle(this.tForce)
+        this.playerStyle = `hsl(${28}, ${(Math.random() * 50) + 50}%, ${(Math.random() * 20) + 50}%)`
 
         console.log("created new player")
     }
 
+    /*
+        Helper Functions
+    */
+    updatePosition(allowWarp: boolean = true) {
+        let position = {
+            x: this.position.x + this.velocity.x,
+            y: this.position.y + this.velocity.y
+        }
+
+        if (allowWarp) {
+            // warp the players back around when it goes out of bounds.
+            if (position.x > this.canvas.width) {
+                position.x = 0
+            }
+            else if (position.x < 0) {
+                position.x = this.canvas.width
+            }
+
+            if (position.y > this.canvas.height) {
+                position.y = 0
+            }
+            else if (position.y < 0) {
+                position.y = this.canvas.height
+            }
+        }
+
+        this.position = position
+    }
+
+    /*
+        Boid Algorithm Functions
+    
+    */
     findClosePlayers(playerList: PlayerList): playerInfo[] {
-        let pInfo: playerInfo[] = []
+        const playerInfos: playerInfo[] = []
 
         for (let i = 0; i < playerList.players.length; i++) {
-            const currPlayer = playerList.players[i]
-            const posDiff = subtractVector(currPlayer.position, this.position)
-            const distanceTo = getMag(posDiff)
+            // get the scalar distance from this boid to its surrounding neighbours
+            const currentPlayer = playerList.players[i]
+            const relDisp = subtractVector(currentPlayer.position, this.position)
+            const distanceTo = getMag(relDisp)
 
+            // only adds something to the player info list if it is within the perception range
             if (distanceTo < this.perception) {
-                pInfo.push({
-                    dF: currPlayer.driveForce,
-                    pos: {...posDiff, y: -1 * posDiff.y}
+                playerInfos.push({
+                    relDisp: relDisp,
+                    absVel: currentPlayer.velocity,
+                    isTooClose: (distanceTo < (this.perception * this.avoidRatio)) ? true : false
                 })
             }
         }
 
-        return pInfo
+        return playerInfos
     }
 
-    alignment(closePlayers: playerInfo[]): vec2 {
-        if (closePlayers.length > 0) {
-            const closePlayerMags: vec2[] = []
+    alignment(closePlayers: playerInfo[], alignmentFactor: number): vec2 {
+        let sumAlignment:vec2 = {x: 0, y: 0}
 
-            closePlayers.map((val) => {
-                closePlayerMags.push(val.dF)
-            })
+        // Only align with non
+        for(let i = 0; i < closePlayers.length; i++) {
+            const currentNeighbour = closePlayers[i]
 
-            return addVectors(closePlayerMags, this.alignmentForce)
-
-        }
-
-        return { x: 0, y: 0 }
-    }
-
-    separation(closePlayers: playerInfo[]): vec2 {
-        if (closePlayers.length > 0) {
-            let sumVec: vec2 = {x: 0, y: 0} 
-            
-            closePlayers.map((val) => {
-                sumVec.x += val.pos.x
-                sumVec.y += val.pos.y
-            })
-
-            return {
-                x: ((-sumVec.x / closePlayers.length) / (this.perception / 4)) * this.seperationForce,
-                y: ((-sumVec.y / closePlayers.length) / (this.perception / 4)) * this.seperationForce
+            if (!currentNeighbour.isTooClose) {
+                sumAlignment.x += currentNeighbour.absVel.x
+                sumAlignment.y += currentNeighbour.absVel.y
             }
-
         }
 
-        return {x: 0, y: 0}
+        const avgAlignment: vec2 = {
+            x: sumAlignment.x / closePlayers.length,
+            y: sumAlignment.y / closePlayers.length,
+        }
+        
+        return { 
+            x: (avgAlignment.x - this.velocity.x) * alignmentFactor, 
+            y: (avgAlignment.y - this.velocity.y) * alignmentFactor 
+        }
     }
 
-    cohesion(closePlayers: playerInfo[]): vec2 {
-        if (closePlayers.length > 0) {
-            let sumVec: vec2 = {x: 0, y: 0} 
-            
-            closePlayers.map((val) => {
-                sumVec.x += val.pos.x
-                sumVec.y += val.pos.y
-            })
+    separation(closePlayers: playerInfo[], seperationFactor: number): vec2 {
+        let sumSeperation:vec2 = {x: 0, y: 0}
 
-            return {
-                x: ((sumVec.x / closePlayers.length) / this.perception) * this.cohensionForce,
-                y: ((sumVec.y / closePlayers.length) / this.perception) * this.cohensionForce
+        // Only align with non
+        for(let i = 0; i < closePlayers.length; i++) {
+            const currentNeighbour = closePlayers[i]
+
+            if (currentNeighbour.isTooClose) {
+                sumSeperation.x += currentNeighbour.relDisp.x
+                sumSeperation.y += currentNeighbour.relDisp.y
             }
-
         }
 
+        const avgSeperation: vec2 = {
+            x: sumSeperation.x / closePlayers.length,
+            y: sumSeperation.y / closePlayers.length,
+        }
+        
+        return { 
+            x: (-avgSeperation.x) * seperationFactor, 
+            y: (-avgSeperation.y) * seperationFactor 
+        }
+    }
+
+    cohesion(closePlayers: playerInfo[], cohesionFactor: number): vec2 {
+        let sumCohesion:vec2 = {x: 0, y: 0}
+
+        // Only align with non
+        for(let i = 0; i < closePlayers.length; i++) {
+            const currentNeighbour = closePlayers[i]
+
+            if (!currentNeighbour.isTooClose) {
+                sumCohesion.x += currentNeighbour.relDisp.x
+                sumCohesion.y += currentNeighbour.relDisp.y
+            }
+        }
+
+        const avgCohesion: vec2 = {
+            x: sumCohesion.x / closePlayers.length,
+            y: sumCohesion.y / closePlayers.length,
+        }
+        
+        return { 
+            x: avgCohesion.x * cohesionFactor, 
+            y: avgCohesion.y * cohesionFactor 
+        }
         return {x: 0, y: 0}
     }
 
     // depending on its internal state update the bird
     update(playerList: PlayerList | void): void {
         if (playerList) {
-            // get the player info
             const closePlayers = this.findClosePlayers(playerList)
+            const alignVelocity = this.alignment(closePlayers, this.alignmentFactor)
+            const seperateVelocity = this.separation(closePlayers, this.seperationFactor)
+            const cohesionVelocity = this.cohesion(closePlayers, this.cohesionFactor)
 
-            const driveForce = {
-                x: this.driveForce.x * this.drivingForce,
-                y: this.driveForce.y * this.drivingForce
+            this.newVelocity = addVectors([this.velocity, alignVelocity, seperateVelocity, cohesionVelocity])
+        }
+
+        // Deal with the screen edges
+        const edgeMargin = 150
+
+        if (this.position.x > (this.canvas.width - edgeMargin)) {
+            this.newVelocity.x  = this.newVelocity.x - this.turnFactor
+        }
+        else if (this.position.x < (0 + edgeMargin)) {
+            this.newVelocity.x  = this.newVelocity.x + this.turnFactor
+        }
+
+        if (this.position.y > (this.canvas.height - edgeMargin)) {
+            this.newVelocity.y = this.newVelocity.y - this.turnFactor
+        }
+        else if (this.position.y < (0 + edgeMargin)) {
+            this.newVelocity.y = this.newVelocity.y + this.turnFactor
+        } 
+
+        const speed = getMag(this.newVelocity)
+
+        if (speed > this.maxSpeed) {
+            this.newVelocity = {
+                x: (this.newVelocity.x / speed) * this.maxSpeed,
+                y: (this.newVelocity.y / speed) * this.maxSpeed
             }
-            const alignForce = this.alignment(closePlayers)
-            const sepForce = this.separation(closePlayers)
-            const cohForce = this.cohesion(closePlayers)
-
-            // add all the forces together
-            this.tForce = addVectors([driveForce, alignForce, sepForce, cohForce], 1)
         }
 
-        const velocity: vec2 = {
-            x: this.tForce.x * this.speed,
-            y: this.tForce.y * this.speed
+        if (speed < this.minSpeed) {
+            this.newVelocity = {
+                x: (this.newVelocity.x / speed) * this.minSpeed,
+                y: (this.newVelocity.y / speed) * this.minSpeed
+            }
         }
 
-        const dispT: vec2 = {
-            x: velocity.x,
-            y: -1 * velocity.y
-        }
-
-        let position = translate(this.position, dispT)
-
-        // warp the players back around when it goes out of bounds.
-        if (position.x > this.canvas.width) {
-            position.x = 0
-        }
-        else if (position.x < 0) {
-            position.x = this.canvas.width
-        }
-
-        if (position.y > this.canvas.height) {
-            position.y = 0
-        }
-        else if (position.y < 0) {
-            position.y = this.canvas.height
-        }
-
-        this.position = position
-        this.bearing = getAngle(dispT)
-
+        this.updatePosition(this.wrapAround)
     }
 
     draw(
         ctx: CanvasRenderingContext2D,
     ): void {
         let path: vec2[] = [
-            { x: 16, y: 0 },
-            { x: -16, y: -9 },
-            { x: -16, y: 9 }
+            { x: 12, y: 0 },
+            { x: 0, y: -4 },
+            { x: -6, y: -2 },
+            { x: -12, y: -4 },
+            { x: -12, y: 4 },
+            { x: -6, y: 2 },
+            { x: 0, y: 4 },
+            {x: 12, y: 0}
         ]
 
-        path = translateArray(rotateArray(path, toDegrees(this.bearing)), this.position)
+        path = translateArray(rotateArray(path, toDegrees(getAngle(this.newVelocity))), this.position)
 
         if (ctx) {
             ctx.beginPath();
@@ -206,8 +265,8 @@ class Player {
             ctx.fill();
         }
 
-        // set the forward direction to the over all force
-        this.driveForce = this.tForce
+        this.velocity = this.newVelocity
+
     }
 
 }

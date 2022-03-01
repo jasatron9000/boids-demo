@@ -1,6 +1,4 @@
 import Player from "./player";
-import { vec2 } from "../../../interfaces/vector";
-import { timeStamp } from "console";
 
 export class PlayerList {
     canvas: HTMLCanvasElement;

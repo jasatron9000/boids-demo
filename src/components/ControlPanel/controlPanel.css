@@ -1,0 +1,9 @@
+.control-panel {
+    display: grid;
+    grid-template-columns: 1fr 2fr 2fr;
+    grid-template-rows: 1fr;
+
+    width: clamp(1em, 90%, 100em);
+
+    box-sizing: border-box;
+}

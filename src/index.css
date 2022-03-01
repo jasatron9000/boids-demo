@@ -1,20 +1,31 @@
+@font-face {
+  font-family: Fredoka;
+  src: url('./fonts/Montserrat.ttf');
+}
+
 :root {
   --primary: #303952;
   --secondary: #596275;
-  --accent: #546de5;
+  --accent: #f7b731;
+
+  font-family: Fredoka, Arial, Helvetica, sans-serif;
+  font-weight: 900;
 }
 
 html, body {
   padding: 0;
   margin: auto;
   background-color: var(--primary);
+  box-sizing: border-box;
 
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
 
 }
 
 #root {
   width: 100%;
   height: 100%;
+
+  box-sizing: border-box;
 }
