@@ -3,17 +3,41 @@ import { PlayerList } from './classes/playerList';
 
 import './index.css';
 
-const Canvas: React.FC = () => {
+interface Props {
+    perception?: number,
+    closePerception?: number,
+    turnFactor?: number,
+
+    cohesionFactor?: number,
+    seperationFactor?: number,
+    alignmentFactor?: number
+}
+
+const Canvas: React.FC<Props> = ({
+    perception,
+    closePerception,
+    turnFactor,
+    cohesionFactor,
+    seperationFactor,
+    alignmentFactor
+}) => {
     const playersRef = useRef<PlayerList | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const [totalPlayers, setTotalPlayers] = useState(500);
+    const totalPlayers: number = 200
 
     function draw() {
         const players = playersRef.current
 
         if (players) {
-            players.update()
+            players.update(
+                alignmentFactor, 
+                seperationFactor, 
+                cohesionFactor, 
+                turnFactor, 
+                perception, 
+                closePerception
+            )
             players.draw()
         }
     }
@@ -32,7 +56,7 @@ const Canvas: React.FC = () => {
     }, [])
 
     useEffect(() => {
-        const ID = setInterval(draw, 33)
+        const ID = setInterval(draw, 42)
 
         return () => {
             clearInterval(ID)

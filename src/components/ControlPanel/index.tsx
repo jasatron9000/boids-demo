@@ -13,9 +13,6 @@ const ControlPanel: React.FC = () => {
                 <h1>Boids</h1>
             </div>
             <div className="left-column">
-                <Slider name="Cohesion" min={0} max={1} sliderHandler={handleCohesion}/>
-                <Slider name="Alignment" min={0} max={1} sliderHandler={handleCohesion}/>
-                <Slider name="Separation" min={0} max={1} sliderHandler={handleCohesion}/>
             </div>
             <div className="right-column">
                 <h2>Visual Range</h2>

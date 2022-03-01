@@ -24,14 +24,15 @@ class Player {
     position: vec2;
 
     alignmentFactor: number = 0.5
-    seperationFactor: number = 0.75
-    cohesionFactor: number = 0.005
+    seperationFactor: number = 0.5
+    cohesionFactor: number = 0.001
+
+    turnFactor: number = 6
+    perception: number = 200
+    avoidRatio: number = 0.3
 
     maxSpeed: number
     minSpeed: number
-    turnFactor: number = 4
-    perception: number = 100
-    avoidRatio: number = 0.4
 
     canvas: HTMLCanvasElement;
     wrapAround: boolean = false;
@@ -40,8 +41,8 @@ class Player {
 
     constructor(
         canvas: HTMLCanvasElement,
-        maxSpeed: number = 25,
-        minSpeed: number = 10
+        maxSpeed: number = 30,
+        minSpeed: number = 15
     ) {
         this.canvas = canvas
         this.maxSpeed = maxSpeed
@@ -238,14 +239,14 @@ class Player {
         ctx: CanvasRenderingContext2D,
     ): void {
         let path: vec2[] = [
-            { x: 12, y: 0 },
-            { x: 0, y: -4 },
-            { x: -6, y: -2 },
-            { x: -12, y: -4 },
-            { x: -12, y: 4 },
-            { x: -6, y: 2 },
-            { x: 0, y: 4 },
-            {x: 12, y: 0}
+            { x: 18, y: 0 },
+            { x: 0, y: -6 },
+            { x: -12, y: -3 },
+            { x: -18, y: -6 },
+            { x: -18, y: 6 },
+            { x: -12, y: 3 },
+            { x: 0, y: 6 },
+            {x: 18, y: 0}
         ]
 
         path = translateArray(rotateArray(path, toDegrees(getAngle(this.newVelocity))), this.position)

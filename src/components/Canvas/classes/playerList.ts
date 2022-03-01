@@ -23,9 +23,24 @@ export class PlayerList {
         }
     }
 
-    update() {
+    update(
+        alignmentFactor: number = 0.5,
+        seperationFactor: number = 0.5,
+        cohesionFactor: number = 0.001,
+
+        turnFactor: number = 6,
+        perception: number = 200,
+        avoidRatio: number = 0.3
+    ) {
         for (let i = 0; i < this.players.length; i++) {
             if (this.ctx) {
+                this.players[i].alignmentFactor = alignmentFactor
+                this.players[i].seperationFactor = seperationFactor
+                this.players[i].cohesionFactor = cohesionFactor
+                this.players[i].turnFactor = turnFactor
+                this.players[i].perception = perception
+                this.players[i].avoidRatio = avoidRatio
+
                 this.players[i].update(this)
             }
         }

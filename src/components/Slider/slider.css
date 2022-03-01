@@ -1,0 +1,13 @@
+.slider-container {
+    background-color: var(--secondary);
+    margin: 0.5em;
+    padding: 0.5em;
+    border-radius: 0.5em;
+}
+
+p {
+    font-weight: lighter;
+    color: var(--primary);
+    padding: 0;
+    margin: 0.2em;
+}
