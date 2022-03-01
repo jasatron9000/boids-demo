@@ -1,46 +1,26 @@
-# Getting Started with Create React App
+# Boids Demo
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is a small project that demonstrates a small simulations of the flocking behaviour of birds. In this case, it can also replicate the behaviour of schools of fishes.
 
-## Available Scripts
+<div style="
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 1em;
+">
+<img src="./boid.png" width=75%>
+</div>
 
-In the project directory, you can run:
+You can visit the demo on this [site](https://jasatron9000.github.io/boids-demo)
 
-### `npm start`
+## Built with
+Programmed with **TypeScript** using the **React** framework. The simulation is a normal HTML5 Canvas element.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Future Work
+- Fix performance issues when changing the sliders.
+- Fix performance issues when more than 300 boids are in the same time.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+## References
+- Used this [guide](https://people.ece.cornell.edu/land/courses/ece4760/labs/s2021/Boids/Boids.html) to help with my code
+- More information [here](https://www.red3d.com/cwr/boids/)
+- [Original Paper](https://www.red3d.com/cwr/papers/1987/boids.html)
